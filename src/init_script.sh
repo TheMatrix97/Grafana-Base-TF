@@ -3,11 +3,6 @@
 sudo apt-get update
 sudo apt-get -y upgrade
 
-# Install awscli
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-sudo apt install -y unzip && unzip awscliv2.zip
-sudo ./aws/install
-
 
 # Clean Docker
 sudo apt-get -y remove docker docker-engine docker.io containerd runc
@@ -24,14 +19,50 @@ sudo apt-get update
 
 sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-# Get repo with grafana
 
-git clone https://github.com/TheMatrix97/tutorial-environment && cd tutorial-environment
+# Add Grafana Image with TLS
+mkdir grafana
+cat << EOF > ./grafana/Dockerfile
+FROM grafana/grafana:latest
+USER root
+RUN apk add openssl && \
+    openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
+    -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=localhost" \
+    -keyout /etc/grafana/grafana.key  -out /etc/grafana/grafana.crt
 
-# Update passw to Cloud2024
-sed -i 's/GF_SECURITY_ADMIN_PASSWORD=cloud2023/GF_SECURITY_ADMIN_PASSWORD=cloud2024/' docker-compose.yml
+RUN chown -R grafana:root /etc/grafana/grafana.crt && \
+    chown -R grafana:root /etc/grafana/grafana.key && \
+    chmod 400 /etc/grafana/grafana.key /etc/grafana/grafana.key
+USER grafana
+EOF
 
-# Update Dockerfile Grafana version
-sed -i 's/grafana\/grafana:10.0.0/grafana\/grafana:latest/' ./grafana/Dockerfile
+cat << EOF > docker-compose.yml
+networks:
+  grafana:
+
+volumes:
+  grafana_data: {}
+
+services:
+
+  grafana:
+    build: ./grafana
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    networks:
+      - grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - /home/ubuntu/.aws/credentials:/usr/share/grafana/.aws/credentials
+    environment:
+      - "GF_DEFAULT_APP_MODE=development"
+      - "GF_LOG_LEVEL=debug"
+      - "GF_SERVER_CERT_FILE=/etc/grafana/grafana.crt" # adjust to match your domain name
+      - "GF_SERVER_CERT_KEY=/etc/grafana/grafana.key" # adjust to match your domain name
+      - "GF_SERVER_PROTOCOL=https"
+      - "GF_SECURITY_ADMIN_USER=admin"
+      - "GF_SECURITY_ADMIN_PASSWORD=cloud2024"
+EOF
 
 sudo docker compose up -d --force-recreate grafana
