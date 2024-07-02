@@ -31,4 +31,7 @@ git clone https://github.com/TheMatrix97/tutorial-environment && cd tutorial-env
 # Update passw to Cloud2024
 sed -i 's/GF_SECURITY_ADMIN_PASSWORD=cloud2023/GF_SECURITY_ADMIN_PASSWORD=cloud2024/' docker-compose.yml
 
+# Update Dockerfile Grafana version
+sed -i 's/grafana\/grafana:10.0.0/grafana\/grafana:latest/' ./grafana/Dockerfile
+
 sudo docker compose up -d --force-recreate grafana
