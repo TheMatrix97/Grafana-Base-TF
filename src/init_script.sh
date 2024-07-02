@@ -55,7 +55,6 @@ services:
       - grafana
     volumes:
       - grafana_data:/var/lib/grafana
-      - /home/ubuntu/.aws/credentials:/usr/share/grafana/.aws/credentials
     environment:
       - "GF_DEFAULT_APP_MODE=development"
       - "GF_LOG_LEVEL=debug"
