@@ -19,23 +19,6 @@ sudo apt-get update
 
 sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-
-# Add Grafana Image with TLS
-mkdir grafana
-cat << EOF > ./grafana/Dockerfile
-FROM grafana/grafana:latest
-USER root
-RUN apk add openssl && \
-    openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
-    -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=localhost" \
-    -keyout /etc/grafana/grafana.key  -out /etc/grafana/grafana.crt
-
-RUN chown -R grafana:root /etc/grafana/grafana.crt && \
-    chown -R grafana:root /etc/grafana/grafana.key && \
-    chmod 400 /etc/grafana/grafana.key /etc/grafana/grafana.key
-USER grafana
-EOF
-
 cat << EOF > docker-compose.yml
 name: grafana
 networks:
@@ -47,7 +30,7 @@ volumes:
 services:
 
   grafana:
-    build: ./grafana
+    image: grafana/grafana:latest
     restart: unless-stopped
     ports:
       - 3000:3000
@@ -58,9 +41,6 @@ services:
     environment:
       - "GF_DEFAULT_APP_MODE=development"
       - "GF_LOG_LEVEL=debug"
-      - "GF_SERVER_CERT_FILE=/etc/grafana/grafana.crt" # adjust to match your domain name
-      - "GF_SERVER_CERT_KEY=/etc/grafana/grafana.key" # adjust to match your domain name
-      - "GF_SERVER_PROTOCOL=https"
       - "GF_SECURITY_ADMIN_USER=admin"
       - "GF_SECURITY_ADMIN_PASSWORD=cloud2024"
 EOF
