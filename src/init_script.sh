@@ -37,6 +37,7 @@ USER grafana
 EOF
 
 cat << EOF > docker-compose.yml
+name: grafana
 networks:
   grafana:
 
