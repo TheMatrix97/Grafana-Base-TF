@@ -9,4 +9,8 @@ sudo apt-get update
 
 # Installs the latest OSS release:
 sudo apt-get -y install grafana
+
+# Set Admin password cloud2024
+sudo grafana-cli admin reset-admin-password cloud2024
+
 sudo systemctl daemon-reload && sudo systemctl enable grafana-server --now

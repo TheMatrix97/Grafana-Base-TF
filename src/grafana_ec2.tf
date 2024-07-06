@@ -25,6 +25,10 @@ data "aws_ami" "ubuntu" {
   }
 }
 
+data "http" "myip" {
+  url = "https://ipv4.icanhazip.com"
+}
+
 resource "aws_security_group" "app_grafana_instance_sg" {
   name        = "grafana_instance"
   description = "Grafana Instance security group"
@@ -34,6 +38,14 @@ resource "aws_security_group" "app_grafana_instance_sg" {
     to_port          = 3000
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description      = "SSH from MyIp to Grafana"
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["${chomp(data.http.myip)}/32"]
   }
 
   egress {
