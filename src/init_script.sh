@@ -1,48 +1,12 @@
 #!/bin/sh
 
-sudo apt-get update
-sudo apt-get -y upgrade
-
-
-# Clean Docker
-sudo apt-get -y remove docker docker-engine docker.io containerd runc
-
-# Install Docker
-sudo apt-get -y install ca-certificates curl gnupg lsb-release
-sudo mkdir -m 0755 -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
+# Add Grafana source apt
+sudo apt update && sudo apt-get install -y apt-transport-https software-properties-common wget unzip
+sudo mkdir -p /etc/apt/keyrings/
+wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
+echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
 sudo apt-get update
 
-sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-cat << EOF > docker-compose.yml
-name: grafana
-networks:
-  grafana:
-
-volumes:
-  grafana_data: {}
-
-services:
-
-  grafana:
-    image: grafana/grafana:latest
-    restart: unless-stopped
-    ports:
-      - 3000:3000
-    networks:
-      - grafana
-    volumes:
-      - grafana_data:/var/lib/grafana
-    environment:
-      - "GF_DEFAULT_APP_MODE=development"
-      - "GF_LOG_LEVEL=debug"
-      - "GF_SECURITY_ADMIN_USER=admin"
-      - "GF_SECURITY_ADMIN_PASSWORD=cloud2024"
-EOF
-
-sudo docker compose up -d --force-recreate grafana
+# Installs the latest OSS release:
+sudo apt-get -y install grafana
+sudo systemctl daemon-reload && sudo systemctl enable grafana-server --now
