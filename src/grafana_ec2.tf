@@ -45,7 +45,7 @@ resource "aws_security_group" "app_grafana_instance_sg" {
     from_port        = 22
     to_port          = 22
     protocol         = "tcp"
-    cidr_blocks      = ["${chomp(data.http.myip)}/32"]
+    cidr_blocks      = ["${chomp(data.http.myip.response_body)}/32"]
   }
 
   egress {
