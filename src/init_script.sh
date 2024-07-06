@@ -11,6 +11,6 @@ sudo apt-get update
 sudo apt-get -y install grafana
 
 # Set Admin password cloud2024
-sudo grafana-cli admin reset-admin-password cloud2024
+sudo -u grafana grafana-cli admin reset-admin-password cloud2024
 
 sudo systemctl daemon-reload && sudo systemctl enable grafana-server --now
